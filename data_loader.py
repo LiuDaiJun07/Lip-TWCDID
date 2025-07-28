@@ -98,7 +98,6 @@ class RD_dataset(Dataset):
             cube2 = cube2.squeeze()
             cube3 = cube3.squeeze()
 
-            #标准化
             cube = self.standardize(cube, is_complex=False)
             cube1 = self.standardize(cube1, is_complex=False)
             cube2 = self.standardize(cube2, is_complex=False)

@@ -106,13 +106,7 @@ def main(args: argparse.Namespace):
         # plot t-SNE
         tSNE_filename = osp.join(logger.visualize_directory, f'ours_tnse_{args.target}.pdf')
         tsne.visualize(source_feature, target_feature, tSNE_filename)
-        # tsne.visualize1(source_feature, target_feature, tSNE_filename)
-        # tsne.visualize2(source_feature, target_feature, labels_s, labels_t, tSNE_filename)
-        # tsne.visualize_target_only(target_feature, labels_t, tSNE_filename, tSNE_filename1)
         print("Saving t-SNE to", tSNE_filename)
-        # calculate A-distance, which is a measure for distribution discrepancy
-        A_distance = a_distance.calculate(source_feature, target_feature, device)
-        print(f"Mean A-distance ={A_distance}")
         return
 
     # image classification test
@@ -134,12 +128,10 @@ def main(args: argparse.Namespace):
             if input('Continue from the checkpoint?') in ['y', 'Y', 'yes', 'YES']:
                 checkpoint = torch.load(checkpoint_path)
                 classifier.load_state_dict(checkpoint['net'].state_dict())
-                # 替换最后一层以适应新的 num_class
                 # data_args.model.fc = nn.Linear(512*data_args.model.block.expansion, 128)
-                classifier.to(device)  # 创建了新的FC需要重新将模型放到CUDA上
+                classifier.to(device)
                 optimizer.load_state_dict(checkpoint['optimizer_state_dict'])
                 lr_scheduler.load_state_dict(checkpoint['scheduler'])
-                # 添加 in 8.22
                 checkpoint_epoch = checkpoint['epoch']
                 # load best_acc
                 best_acc = checkpoint['best']
@@ -218,7 +210,7 @@ def train(train_source_iter: ForeverDataIterator, train_target_iter: ForeverData
         bsz = labels_s.shape[0]
 
         x_t = torch.cat([x_t_w, x_t_s1], dim=0)
-        x_s = x_s.to(device)  # 只用到原域弱增强数据
+        x_s = x_s.to(device)
         x_t = x_t.to(device)
         labels_s = labels_s.to(device)
 
@@ -316,14 +308,14 @@ if __name__ == '__main__':
     parser.add_argument('--lr-gamma', default=0.0003, type=float, help='parameter for lr scheduler')
     parser.add_argument('--lr-decay', default=0.75, type=float, help='parameter for lr scheduler')
     parser.add_argument('--pretrain-epoch', default=5, type=int,
-                        help='pretrain epoch for discriminative feature learning')  # 预训练次数
+                        help='pretrain epoch for discriminative feature learning')
     parser.add_argument('--momentum', default=0.9, type=float, metavar='M',
                         help='momentum')
     parser.add_argument('--wd', '--weight-decay', default=0.0005, type=float,
                         metavar='W', help='weight decay (default: 5e-4)')
     parser.add_argument('-j', '--workers', default=4, type=int, metavar='N',
                         help='number of data loading workers (default: 2)')
-    parser.add_argument('--epochs', default=100, type=int, metavar='N',  # epochs
+    parser.add_argument('--epochs', default=100, type=int, metavar='N',
                         help='number of total epochs to run')
     parser.add_argument('-i', '--iters-per-epoch', default=500, type=int,
                         help='Number of iterations per epoch')

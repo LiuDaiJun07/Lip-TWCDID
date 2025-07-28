@@ -171,8 +171,8 @@ class SupConLoss(nn.Module):
         device = (torch.device('cuda')
                   if features.is_cuda
                   else torch.device('cpu'))
-        # if labels is None:   #这里的if是自己添加的
-        batch_size = features.shape[0] // 2  # 原始只有这一句
+
+        batch_size = features.shape[0] // 2
 
         features = F.normalize(features, dim=1)
         f_t1, f_t2 = torch.split(features, [batch_size, batch_size], dim=0)
