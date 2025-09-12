@@ -1,4 +1,5 @@
 # Citation
+```bibtex
 @ARTICLE{11153694,
   author={Yang, Kai and Zhu, Dongsheng and Xu, Yujie and Han, Chong and Guo, Jian and Sun, Lijuan},
   journal={IEEE Transactions on Mobile Computing}, 
