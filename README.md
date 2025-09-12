@@ -11,5 +11,5 @@
   doi={10.1109/TMC.2025.3607413}}
 </pre>
 # Acknowledgements
-Our work references the following open source projects. We thank the authors of these projects for making their source code publicly available.
+Our codebase references the following open source project. We thank the authors of this project for making their source code publicly available.
 - [MIC](https://github.com/lhoyer/MIC.git)
