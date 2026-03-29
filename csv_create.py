@@ -16,7 +16,7 @@ NAME_TARGET = "15+30"
 os.makedirs(f"{CSV_BASE}/{NAME_SOURCE}_source", exist_ok=True)
 os.makedirs(f"{CSV_BASE}/{NAME_TARGET}_target", exist_ok=True)
 
-mat_files = [f for f in os.listdir(DATASET_FOLDER) if f.endswith(".mat")]
+mat_files = [f for f in os.listdir(DATASET_FOLDER) if f.endswith(".npz")]
 mat_files.sort()
 
 lines = []
