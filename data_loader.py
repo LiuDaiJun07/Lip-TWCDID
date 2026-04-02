@@ -1,6 +1,7 @@
 import csv
 import os
 import numpy as np
+import scipy.io as sio
 import torch
 
 from scipy.signal import stft
@@ -59,15 +60,55 @@ class RD_dataset(Dataset):
     def __len__(self):
         return len(self.data_path_list)
 
+    def _load_cube(self, path: str) -> np.ndarray:
+        """Load radar data from a .npz or .mat file.
+
+        For .npz files, expects keys:
+            - 'bin':   complex array of shape (T, n_tx, n_rx, n_range)
+            - 'index': int array of shape (3,) = [tx_idx, rx_idx, range_bin]
+        For .mat files, expects key:
+            - 'feature': complex array of shape (T, n_bins)
+              Three center range bins are selected automatically.
+
+        Returns:
+            np.ndarray: complex array of shape (T, 1, 1, 3)
+        """
+        ext = os.path.splitext(path)[1].lower()
+
+        if ext == '.npz':
+            data = np.load(path, allow_pickle=True)
+            bin_data = data['bin']                     # (T, n_tx, n_rx, n_range)
+            idx = data['index']                        # [tx, rx, range_bin]
+            tx, rx, rb = int(idx[0]), int(idx[1]), int(idx[2])
+            n_range = bin_data.shape[3]
+            # 确保相邻索引不越界 / ensure adjacent indices are in bounds
+            rb = max(1, min(rb, n_range - 2))
+            cube0 = bin_data[:, tx, rx, rb - 1]       # (T,)
+            cube1 = bin_data[:, tx, rx, rb]            # (T,)
+            cube2 = bin_data[:, tx, rx, rb + 1]        # (T,)
+
+        elif ext == '.mat':
+            mat_data = sio.loadmat(path)
+            feature = mat_data['feature']              # (T, n_bins)
+            n_bins = feature.shape[1]
+            center = n_bins // 2
+            # 选中心附近三个距离门 / select three center range bins
+            center = max(1, min(center, n_bins - 2))
+            cube0 = feature[:, center - 1]             # (T,)
+            cube1 = feature[:, center]                 # (T,)
+            cube2 = feature[:, center + 1]             # (T,)
+
+        else:
+            raise ValueError(f"Unsupported file format: {ext} (path: {path})")
+
+        cube = np.stack([cube0, cube1, cube2], axis=1)  # (T, 3)
+        cube = np.expand_dims(cube, axis=(1, 2))         # (T, 1, 1, 3)
+        return cube
+
     def get_item(self, item):
 
         path = self.data_path_list[item]
-        cube_fft = np.load(path, allow_pickle=True)['data'].item()['lip']['raw']
-        index = 2
-        cube, cube1, cube2 = (cube_fft[:, index-1,index-1,index-1],cube_fft[:, index,index,index],
-                              cube_fft[:, index+1,index+1,index+1])
-        cube = np.stack([cube, cube1, cube2], axis=1)
-        cube = np.expand_dims(cube, axis=(1, 2))
+        cube = self._load_cube(path)  # shape: (T, 1, 1, 3), complex
 
         if self.argument:
             cube,cube1,cube2,cube3 = self.transform['IQ'](cube)

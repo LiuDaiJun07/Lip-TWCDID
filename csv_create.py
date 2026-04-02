@@ -5,7 +5,7 @@ import csv
 # 自动生成 CSV
 # ======================
 
-BASE = "/data/coding"
+BASE = os.path.dirname(os.path.abspath(__file__))  # 使用脚本所在目录 / use script directory
 DATASET_FOLDER = os.path.join(BASE, "dataset")
 CSV_BASE = os.path.join(BASE, "data_path_csv")
 
@@ -16,8 +16,11 @@ NAME_TARGET = "15+30"
 os.makedirs(f"{CSV_BASE}/{NAME_SOURCE}_source", exist_ok=True)
 os.makedirs(f"{CSV_BASE}/{NAME_TARGET}_target", exist_ok=True)
 
-mat_files = [f for f in os.listdir(DATASET_FOLDER) if f.endswith(".npz")]
-mat_files.sort()
+# 收集 .npz 和 .mat 文件 / collect both .npz and .mat dataset files
+mat_files = sorted(
+    f for f in os.listdir(DATASET_FOLDER)
+    if f.endswith(".npz") or f.endswith(".mat")
+)
 
 lines = []
 for i, f in enumerate(mat_files):
