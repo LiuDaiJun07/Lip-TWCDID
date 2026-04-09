@@ -153,6 +153,12 @@ class RD_dataset(Dataset):
             x3 = torch.tensor(cube3.copy())
             x3 = x3.type(torch.float32)
 
+            # change the shape to (C, T, F) 
+            x.permute(2, 0, 1)
+            x1.permute(2, 0, 1)
+            x2.permute(2, 0, 1)
+            x3.permute(2, 0, 1)
+
         else:
             cube -= np.average(cube, 0)
             f, t, cube = stft(cube, fs=100, nperseg=128, noverlap=124, nfft=128,
@@ -164,6 +170,9 @@ class RD_dataset(Dataset):
             # cube = normalize(cube)
             x = torch.tensor(cube)
             x = x.type(torch.float32)
+            
+            # change the shape to (C, T, F) for CNN input
+            x = x.permute(2, 0, 1)
 
         y = self.label_list[item]
 
