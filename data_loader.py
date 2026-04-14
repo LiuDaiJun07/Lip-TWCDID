@@ -154,10 +154,10 @@ class RD_dataset(Dataset):
             x3 = x3.type(torch.float32)
 
             # change the shape to (C, T, F) 
-            x.permute(2, 0, 1)
-            x1.permute(2, 0, 1)
-            x2.permute(2, 0, 1)
-            x3.permute(2, 0, 1)
+            x  = x.permute(2, 0, 1)
+            x1 = x1.permute(2, 0, 1)
+            x2 = x2.permute(2, 0, 1)
+            x3 = x3.permute(2, 0, 1)
 
         else:
             cube -= np.average(cube, 0)
