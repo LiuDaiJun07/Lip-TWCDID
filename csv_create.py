@@ -1,30 +1,44 @@
 import os
 import csv
 
-# ======================
-# 自动生成 CSV
-# ======================
-
-BASE = os.path.dirname(os.path.abspath(__file__))  # 使用脚本所在目录 / use script directory
+BASE = os.path.dirname(os.path.abspath(__file__))
 DATASET_FOLDER = os.path.join(BASE, "dataset")
 CSV_BASE = os.path.join(BASE, "data_path_csv")
 
-# 必须和代码一致
 NAME_SOURCE = "15-0"
 NAME_TARGET = "15+30"
 
 os.makedirs(f"{CSV_BASE}/{NAME_SOURCE}_source", exist_ok=True)
 os.makedirs(f"{CSV_BASE}/{NAME_TARGET}_target", exist_ok=True)
 
-# 收集 .npz 和 .mat 文件 / collect both .npz and .mat dataset files
-mat_files = sorted(
-    f for f in os.listdir(DATASET_FOLDER)
-    if f.endswith(".npz") or f.endswith(".mat")
-)
+# 输入你的人名简写
+key_input = input("请输入分类简写（逗号分隔）：").strip()
+key_input = key_input.replace("，", ",")
+keywords = [kw.strip() for kw in key_input.split(",") if kw.strip()]
+
+# 标签从 0 开始
+name_to_id = {kw: i for i, kw in enumerate(keywords)}
 
 lines = []
-for i, f in enumerate(mat_files):
-    lines.append([f"dataset/{f}", i])  # <-- 自动加 dataset/
+for root, _, files in os.walk(DATASET_FOLDER):
+    for file in files:
+        if not file.endswith((".npz", ".mat")):
+            continue
+
+        full_path = os.path.join(root, file)
+        rel_path = os.path.relpath(full_path, BASE)
+        path_str = rel_path.replace("\\", "/")
+
+        # 遍历所有名字，确保匹配到
+        class_id = -1
+        for name, idx in name_to_id.items():
+            if f"/{name}/" in path_str:
+                class_id = idx
+
+        if class_id == -1:
+            class_id = 0
+
+        lines.append([rel_path, class_id])
 
 csv_list = [
     f"{NAME_SOURCE}_source/train.csv",
@@ -39,8 +53,11 @@ csv_list = [
 
 for csv_file in csv_list:
     path = os.path.join(CSV_BASE, csv_file)
-    with open(path, "w", newline="") as f:
+    # 用utf-8
+    with open(path, "w", newline="", encoding="utf-8") as f:
         writer = csv.writer(f)
         writer.writerows(lines)
 
-print("✅ CSV 已写入数据！")
+print("CSV 生成完成")
+for name, idx in name_to_id.items():
+    print(f"{name} → {idx}")
